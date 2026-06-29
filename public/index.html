@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; }
+        body { font-family: 'Kanit', sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+        .card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center; border: 1px solid rgba(255,255,255,0.5); }
+        .page { display: none; } .active { display: block; }
+        button { font-size: 18px; padding: 15px; width: 100%; cursor: pointer; border-radius: 12px; border: none; background: var(--primary); color: white; transition: transform 0.2s, background 0.3s; margin-top: 15px; font-weight: 600; }
+        button:hover { transform: scale(1.02); background: #4f46e5; }
+        .content-box { height: 200px; text-align: left; padding: 20px; background: white; border-radius: 16px; margin: 20px 0; border-left: 6px solid var(--primary); overflow-y: auto; }
+        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+        .progress-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin: 15px 0; overflow: hidden; }
+        #progress-bar { width: 100%; height: 100%; background: #e74c3c; border-radius: 5px; transition: width 1s linear; }
+    </style>
+</head>
+<body>
+    <div id="page-join" class="card page active">
+        <h1 style="color: var(--primary);">เข้าสู่บทเรียน</h1>
+        <input id="name" placeholder="ชื่อ - เลขที่">
+        <button onclick="join()">เข้าสู่บทเรียน</button>
+        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:20px;">
+            <img src="teacher.jpg" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover;">
+            <h3 style="margin: 10px 0 5px 0;">ครูพีระพงษ์ ศรีเที่ยง (ปริ้น)</h3>
+            <p style="color: var(--primary); font-weight: 400;">วิชาเทคโนโลยี 5</p>
+        </div>
+    </div>
+    <div id="page-lesson" class="card page">
+        <h2 id="slide-title">บทเรียน</h2>
+        <div id="slide-content" class="content-box"></div>
+        <button id="btn-next" onclick="nextSlide()">อ่านหัวข้อถัดไป</button>
+        <button id="btn-ready" onclick="markReady()" style="display:none; background:#10b981;">พร้อมแล้ว!</button>
+    </div>
+    <div id="page-quiz" class="card page">
+        <h2 id="q"></h2>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        <div id="btns"></div>
+    </div>
+    <div id="page-end" class="card page"><h1 id="score-text"></h1><div id="wrong-list" style="text-align:left; margin-top:20px;"></div></div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentSlide = 0, currentQs = [], timerInterval;
+        const slides = [ { title: "1. การแสดงผล", content: "printf ใช้แสดงผลออกทางหน้าจอ" }, { title: "2. การรับค่า", content: "scanf ใช้รับค่าจากคีย์บอร์ด (ต้องมี &)" }, { title: "3. ชนิดตัวแปร", content: "int: จำนวนเต็ม, float: ทศนิยม, char: ตัวอักษร" } ];
+        const answers = [{a:"printf"}, {a:"จำนวนเต็ม"}, {a:"scanf"}, {a:"บอกที่อยู่"}, {a:"ทศนิยม"}, {a:"ประกาศจำนวนเต็ม"}, {a:"ขึ้นบรรทัดใหม่"}, {a:"ตัวอักษรเดียว"}, {a:"float"}, {a:"โปรแกรมค้าง"}, {a:"stdio.h"}, {a:"my_var"}, {a:"%.2f"}, {a:"1"}, {a:"while"}];
+
+        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function join() { socket.emit('join', document.getElementById('name').value); showPage('page-lesson'); updateSlide(); }
+        function updateSlide() { document.getElementById('slide-title').innerText = slides[currentSlide].title; document.getElementById('slide-content').innerText = slides[currentSlide].content; if(currentSlide == slides.length-1) { document.getElementById('btn-next').style.display="none"; document.getElementById('btn-ready').style.display="block"; } }
+        function nextSlide() { currentSlide++; updateSlide(); }
+        function markReady() { socket.emit('mark_ready'); document.getElementById('btn-ready').disabled = true; document.getElementById('btn-ready').innerText = "รอครูเริ่มเกม..."; }
+        socket.on('game_start', (qs) => { currentQs = qs; showPage('page-quiz'); renderQuiz(0); });
+        function renderQuiz(idx) {
+            if(idx >= currentQs.length) { showPage('page-end'); return; }
+            clearInterval(timerInterval); let timeLeft = 10; const bar = document.getElementById('progress-bar');
+            document.getElementById('q').innerText = currentQs[idx].q;
+            document.getElementById('btns').innerHTML = currentQs[idx].a.map((opt, i) => `<button onclick="submitAnswer(${idx}, ${i})">${opt}</button>`).join('');
+            timerInterval = setInterval(() => { timeLeft--; bar.style.width = (timeLeft * 10) + "%"; if(timeLeft <= 0) { clearInterval(timerInterval); submitAnswer(idx, -1); } }, 1000);
+        }
+        function submitAnswer(idx, ans) { clearInterval(timerInterval); socket.emit('submit', { idx: idx, ans: ans, qObj: currentQs[idx] }); if(idx + 1 < currentQs.length) renderQuiz(idx + 1); else showPage('page-end'); }
+        socket.on('game_over', (p) => { 
+            showPage('page-end'); 
+            document.getElementById('score-text').innerText = "คะแนนรวม: " + p.score; 
+            document.getElementById('wrong-list').innerHTML = p.wrongQ.map(q => `
+                <div style="margin-bottom:10px; border-bottom:1px solid #ddd; padding:5px;">❌ ${q.q} 
+                    <button onclick="alert('คำตอบที่ถูกต้องคือ: ${answers[q.originalIdx].a}')" style="font-size:12px; padding:5px; background:#e67e22;">ดูเฉลย</button>
+                </div>`).join(''); 
+        });
+    </script>
+</body>
+</html>
