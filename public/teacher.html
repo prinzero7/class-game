@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard วิเคราะห์</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #ecf0f1; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .advice-item { background: #fff3e0; padding: 15px; margin: 8px 0; border-left: 5px solid #f39c12; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .btn-view { padding: 6px 12px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 13px; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard วิเคราะห์</h1>
+    <button onclick="socket.emit('admin_start')" style="padding:15px; background:#27ae60; color:white; border:none; border-radius:5px; cursor:pointer;">เริ่มเกม!</button>
+    <audio id="bgMusic" loop volume="0.5">
+    <source src="/b.mp3" type="audio/mpeg">
+   
+</audio>
+
+<div class="card">
+    <button onclick="document.getElementById('bgMusic').play()">เปิดเพลง 🎵</button>
+    <button onclick="document.getElementById('bgMusic').pause()">หยุดเพลง ⏸️</button>
+</div>
+    <div class="card">
+        <h3>รายชื่อนักเรียน:</h3>
+        <ul id="student-list" style="list-style:none; padding:0;"></ul>
+    </div>
+
+    <div class="card">
+        <h3>ตารางคะแนน</h3>
+        <table id="tab">
+            <thead><tr><th>อันดับ</th><th>ชื่อ</th><th>คะแนน</th></tr></thead>
+            <tbody id="leaderboard-body"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>วิเคราะห์จุดที่ต้องสอนซ้ำ (Top 3):</h3>
+        <div id="adv">รอข้อมูลจากนักเรียน...</div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const adviceBank = ["printf: Output", "int: เต็ม", "scanf: รับค่า", "&: ห้ามลืม", "%f: ทศนิยม", "ประกาศ: จองที่", "\\n: Enter", "%c: อักษร", "float: ทศนิยม", "scanf &: ต้องมี", "stdio: หัวใจC", "ชื่อ: ห้ามเลขขึ้นหน้า", "%.2f: 2หลัก", "char: 1byte", "loop: ทำซ้ำ"];
+        const questionList = ["คำสั่งแสดงผลภาษา C คือ?", "ตัวแปร int ใช้เก็บอะไร?", "คำสั่งรับค่าคือ?", "สัญลักษณ์ & ใน scanf ใช้ทำไม?", "%f แสดงผลอะไร?", "การประกาศ int a = 10; คือ?", "\\n คืออะไร?", "%c ใช้กับอะไร?", "ตัวแปรแบบไหนเก็บทศนิยม?", "scanf(\"%d\", &x); ถ้าลืม & จะเกิด?", "printf อยู่ใน library ใด?", "ชื่อตัวแปรข้อใดถูกต้อง?", "การแสดงผลทศนิยม 2 ตำแหน่ง?", "ตัวแปร char ขนาดกี่ byte?", "คำสั่งใดใช้ทำซ้ำ?"];
+        const optionsList = [["printf", "scanf", "input", "echo"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["output", "scanf", "read", "scan"], ["เว้นวรรค", "บอกที่อยู่", "ขึ้นบรรทัดใหม่", "เชื่อมข้อความ"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["ประกาศทศนิยม", "ประกาศจำนวนเต็ม", "ประกาศตัวอักษร", "ประกาศข้อความ"], ["เว้นวรรค", "จบโปรแกรม", "ขึ้นบรรทัดใหม่", "แสดงผล"], ["ข้อความ", "เลขจำนวนเต็ม", "ตัวอักษรเดียว", "ทศนิยม"], ["int", "char", "float", "short"], ["โปรแกรมค้าง", "ไม่เกิดอะไรขึ้น", "แสดงผลผิด", "คอมไพล์ไม่ผ่าน"], ["math.h", "stdio.h", "conio.h", "string.h"], ["1stNum", "my_var", "int", "break"], ["%.2f", "%2f", "%f2", "%2.f"], ["1", "2", "4", "8"], ["if", "while", "printf", "scanf"]];
+
+        socket.on('update_players', (ps) => document.getElementById('student-list').innerHTML = ps.map(p => `<li>${p.name} <span style="float:right; color:${p.ready?'green':'red'}">${p.ready?'✅พร้อม':'⏳กำลังอ่าน'}</span></li>`).join(''));
+        
+     socket.on('score_update', (d) => {
+    let sorted = [...d.players].sort((a,b) => b.score - a.score);
+    
+    // 1. คำนวณคะแนนรวมของทุกคน
+    let totalScore = d.players.reduce((sum, p) => sum + p.score, 0);
+
+    // 2. สร้างตารางพร้อมบรรทัดรวมคะแนน
+    document.getElementById('leaderboard-body').innerHTML = sorted.map((p, i) => {
+        let style = i < 3 ? `style="background:${i==0?'#FFD700':(i==1?'#C0C0C0':'#CD7F32')}; font-weight:bold;"` : "";
+        return `<tr ${style}><td>${i+1}</td><td>${p.name || "ไม่ระบุชื่อ"}</td><td>${p.score}</td></tr>`;
+    }).join('') + 
+    `<tr style="background:#2c3e50; color:white; font-weight:bold;">
+        <td colspan="2" style="text-align:right;">รวมคะแนนทั้งห้อง:</td>
+        <td>${totalScore}</td>
+    </tr>`;
+    
+    // 3. แสดงผลวิเคราะห์
+    let ranked = d.wrongCounts.map((c,i)=>({c,i})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3);
+    document.getElementById('adv').innerHTML = ranked.map(x => `
+        <div class="advice-item">
+            <b>ข้อ ${x.i+1} (ผิด ${x.c} คน):</b> ${adviceBank[x.i]} 
+            <button class="btn-view" onclick="alert('โจทย์: ${questionList[x.i]}\\n\\nตัวเลือก: ${optionsList[x.i].join(', ')}')">ดูโจทย์และตัวเลือก</button>
+        </div>`).join('');
+});
+    </script>
+</body>
+</html>
