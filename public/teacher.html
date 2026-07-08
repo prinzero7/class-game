@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <title>Dashboard วิเคราะห์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; --text-color: #f8fafc; --accent: #38bdf8; }
+        body { font-family: 'Kanit', sans-serif; background: var(--bg-color); color: var(--text-color); padding: 30px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #334155; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        th { color: var(--accent); text-transform: uppercase; letter-spacing: 1px; padding: 15px; text-align: left; }
+        td { padding: 15px; background: #334155; border-top: 1px solid #475569; border-bottom: 1px solid #475569; }
+        tr td:first-child { border-radius: 10px 0 0 10px; }
+        tr td:last-child { border-radius: 0 10px 10px 0; }
+        
+        button { padding: 12px 24px; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; font-weight: bold; margin: 5px; }
+        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+        
+        .advice-item { background: #0f172a; border-left: 5px solid var(--accent); padding: 15px; margin: 8px 0; border-radius: 4px; }
+        .btn-view { background: #3498db; margin-left: 10px; padding: 6px 12px; border-radius: 4px; font-size: 13px; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard วิเคราะห์</h1>
+    <div class="card" style="text-align: center;">
+        <img id="boss-gif" src="/1.gif" alt="Boss" style="width: 400px; transition: 0.5s;">
+        <h3 id="boss-status">บอสกำลังท้าทายพวกเรา!</h3>
+    </div>
+    
+    <div class="card" style="text-align:center;">
+        <h3>พลังชีวิตของบอส (Boss HP):</h3>
+        <div style="width: 100%; background: #334155; height: 30px; border-radius: 15px; overflow: hidden;">
+            <div id="boss-hp" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.5s ease;"></div>
+        </div>
+        <p id="hp-text">100 / 100</p>
+    </div>
+    
+    <button onclick="socket.emit('admin_start')">เริ่มเกม!</button>
+    
+    <audio id="bgMusic" loop>
+        <source src="/b.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="card">
+        <button onclick="document.getElementById('bgMusic').play()">เปิดเพลง 🎵</button>
+        <button onclick="document.getElementById('bgMusic').pause()">หยุดเพลง ⏸️</button>
+    </div>
+
+    <div class="card">
+        <h3>รายชื่อนักเรียน:</h3>
+        <h4 id="student-count" style="color: var(--accent);">กำลังโหลดจำนวนนักเรียน...</h4>
+        <ul id="student-list" style="list-style:none; padding:0;"></ul>
+    </div>
+
+    <div class="card">
+        <h3>วิเคราะห์การตอบรายข้อ (Live Heatmap)</h3>
+        <canvas id="scoreChart" style="max-height: 250px;"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>ตารางคะแนน</h3>
+        <table>
+            <thead><tr><th>อันดับ</th><th>ชื่อ</th><th>คะแนน</th></tr></thead>
+            <tbody id="leaderboard-body"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>วิเคราะห์จุดที่ต้องสอนซ้ำ (Top 3):</h3>
+        <div id="adv">รอข้อมูลจากนักเรียน...</div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const adviceBank = ["printf: Output", "int: เต็ม", "scanf: รับค่า", "&: ห้ามลืม", "%f: ทศนิยม", "ประกาศ: จองที่", "\\n: Enter", "%c: อักษร", "float: ทศนิยม", "scanf &: ต้องมี", "stdio: หัวใจC", "ชื่อ: ห้ามเลขขึ้นหน้า", "%.2f: 2หลัก", "char: 1byte", "loop: ทำซ้ำ"];
+        const questionList = ["คำสั่งแสดงผลภาษา C คือ?", "ตัวแปร int ใช้เก็บอะไร?", "คำสั่งรับค่าคือ?", "สัญลักษณ์ & ใน scanf ใช้ทำไม?", "%f แสดงผลอะไร?", "การประกาศ int a = 10; คือ?", "\\n คืออะไร?", "%c ใช้กับอะไร?", "ตัวแปรแบบไหนเก็บทศนิยม?", "scanf(\"%d\", &x); ถ้าลืม & จะเกิด?", "printf อยู่ใน library ใด?", "ชื่อตัวแปรข้อใดถูกต้อง?", "การแสดงผลทศนิยม 2 ตำแหน่ง?", "ตัวแปร char ขนาดกี่ byte?", "คำสั่งใดใช้ทำซ้ำ?"];
+        const optionsList = [["printf", "scanf", "input", "echo"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["output", "scanf", "read", "scan"], ["เว้นวรรค", "บอกที่อยู่", "ขึ้นบรรทัดใหม่", "เชื่อมข้อความ"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["ประกาศทศนิยม", "ประกาศจำนวนเต็ม", "ประกาศตัวอักษร", "ประกาศข้อความ"], ["เว้นวรรค", "จบโปรแกรม", "ขึ้นบรรทัดใหม่", "แสดงผล"], ["ข้อความ", "เลขจำนวนเต็ม", "ตัวอักษรเดียว", "ทศนิยม"], ["int", "char", "float", "short"], ["โปรแกรมค้าง", "ไม่เกิดอะไรขึ้น", "แสดงผลผิด", "คอมไพล์ไม่ผ่าน"], ["math.h", "stdio.h", "conio.h", "string.h"], ["1stNum", "my_var", "int", "break"], ["%.2f", "%2f", "%f2", "%2.f"], ["1", "2", "4", "8"], ["if", "while", "printf", "scanf"]];
+
+        // --- 1. เตรียมระบบกราฟ ---
+        let scoreChart;
+
+        function initChart() {
+            const canvas = document.getElementById('scoreChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            scoreChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: questionList.map((_, i) => 'ข้อ ' + (i+1)),
+                    datasets: [{
+                        label: '% นักเรียนที่ตอบถูก',
+                        data: Array(questionList.length).fill(0), // เริ่มต้นที่ 0%
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 5
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f8fafc' } }
+                    }
+                }
+            });
+        }
+
+        // สั่งสร้างกราฟทันทีเมื่อหน้าเว็บโหลดเสร็จสมบูรณ์
+        window.onload = initChart;
+
+        // --- 2. ระบบ Socket ---
+        socket.on('update_players', (ps) => {
+            document.getElementById('student-count').innerText = "จำนวนนักเรียนที่เข้าร่วม: " + ps.length + " คน";
+            document.getElementById('student-list').innerHTML = ps.map(p => 
+                `<li>${p.name} <span style="float:right; color:${p.ready?'#2ecc71':'#e74c3c'}">${p.ready?'✅พร้อม':'⏳กำลังอ่าน'}</span></li>`
+            ).join('');
+        });
+
+        socket.on('score_update', (d) => {
+            // คำนวณตารางคะแนน
+            let sorted = [...d.players].sort((a,b) => b.score - a.score);
+            let totalScore = d.players.reduce((sum, p) => sum + p.score, 0);
+
+            document.getElementById('leaderboard-body').innerHTML = sorted.map((p, i) => {
+                let glow = i < 3 ? `box-shadow: 0 0 15px ${i==0?'#d4af37':(i==1?'#a8a8a8':'#b87333')}; border: 1px solid ${i==0?'#d4af37':(i==1?'#a8a8a8':'#b87333')};` : "";
+                let style = i < 3 ? `style="background:#1e293b; ${glow} font-weight:bold; transform: scale(1.02);"` : "";
+                return `<tr ${style}>
+                    <td style="color:${i<3?'var(--accent)':''}">${i+1}</td>
+                    <td>${p.name || "ไม่ระบุชื่อ"}</td>
+                    <td style="font-size:1.2em; color:#38bdf8;">${p.score}</td>
+                </tr>`;
+            }).join('') + 
+            `<tr style="background:rgba(56, 189, 248, 0.1); color:var(--accent); font-weight:bold;">
+                <td colspan="2" style="text-align:right;">รวมคะแนนทั้งห้อง:</td>
+                <td style="font-size:1.2em;">${totalScore}</td>
+            </tr>`;
+
+            // ระบบ Boss HP
+            let totalWrong = d.wrongCounts.reduce((sum, val) => sum + val, 0);
+            let hp = Math.max(0, Math.min(100, 100 - (totalScore * 0.5) + (totalWrong * 2))); 
+
+            const hpBar = document.getElementById('boss-hp');
+            const hpText = document.getElementById('hp-text');
+            if (hpBar && hpText) {
+                hpBar.style.width = hp + "%";
+                hpText.innerText = Math.round(hp) + " / 100";
+                
+                if (hp > 70) hpBar.style.background = "linear-gradient(90deg, #22c55e, #10b981)";
+                else if (hp > 30) hpBar.style.background = "linear-gradient(90deg, #eab308, #ca8a04)";
+                else hpBar.style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
+            }
+            
+            // เปลี่ยนรูป GIF บอส
+            const bossGif = document.getElementById('boss-gif');
+            const bossStatus = document.getElementById('boss-status');
+
+            if (bossGif && bossStatus) {
+                bossGif.style.width = "400px";
+                if (hp >= 70) {
+                    if (bossGif.src.indexOf("1.gif") === -1) bossGif.src = "/1.gif";
+                    bossStatus.innerText = "บอสกำลังท้าทายพวกเรา!";
+                } else if (hp >= 30) {
+                    if (bossGif.src.indexOf("2.gif") === -1) bossGif.src = "/2.gif";
+                    bossStatus.innerText = "บอสเริ่มเหนื่อยแล้ว! จัดการเลย!";
+                } else if (hp > 0) {
+                    if (bossGif.src.indexOf("3.gif") === -1) bossGif.src = "/3.gif";
+                    bossStatus.innerText = "บอสใกล้ตายแล้ว! โจมตีขั้นสุดท้าย!";
+                } else {
+                    if (bossGif.src.indexOf("4.gif") === -1) bossGif.src = "/4.gif";
+                    bossStatus.innerText = "GAME WINNER: พวกเราชนะแล้ว!";
+                    bossGif.style.transform = "scale(1.6)";
+                }
+            }
+
+            // ระบบวิเคราะห์คำแนะนำ (Top 3)
+            let ranked = d.wrongCounts.map((c,i)=>({c,i})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3);
+            document.getElementById('adv').innerHTML = ranked.map(x => `
+                <div class="advice-item">
+                    <b>ข้อ ${x.i+1} (ผิด ${x.c} คน):</b> ${adviceBank[x.i]} 
+                    <button class="btn-view" onclick="alert('โจทย์: ${questionList[x.i]}\\n\\nตัวเลือก: ${optionsList[x.i].join(', ')}')">ดูโจทย์และตัวเลือก</button>
+                </div>`).join('');
+
+            // อัปเดตกราฟ (Live Heatmap)
+            if (scoreChart) {
+                let totalStudents = d.players.length || 1; // กันค่าเป็น 0 เพื่อป้องกัน Error หารด้วยศูนย์
+                let percentCorrect = d.wrongCounts.map(wrong => {
+                    let correctCount = Math.max(0, totalStudents - wrong);
+                    return (correctCount / totalStudents) * 100;
+                });
+                scoreChart.data.datasets[0].data = percentCorrect;
+                scoreChart.update();
+            }
+        });
+    </script>
+</body>
+</html>
