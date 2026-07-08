@@ -2,86 +2,290 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6366f1; }
-        body { font-family: 'Kanit', sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
-        .card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center; border: 1px solid rgba(255,255,255,0.5); }
-        .page { display: none; } .active { display: block; }
-        button { font-size: 18px; padding: 15px; width: 100%; cursor: pointer; border-radius: 12px; border: none; background: var(--primary); color: white; transition: transform 0.2s, background 0.3s; margin-top: 15px; font-weight: 600; }
-        button:hover { transform: scale(1.02); background: #4f46e5; }
-        .content-box { height: 200px; text-align: left; padding: 20px; background: white; border-radius: 16px; margin: 20px 0; border-left: 6px solid var(--primary); overflow-y: auto; }
-        input { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        .progress-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin: 15px 0; overflow: hidden; }
-        #progress-bar { width: 100%; height: 100%; background: #e74c3c; border-radius: 5px; transition: width 1s linear; }
+        :root { 
+            --primary: #4f46e5; 
+            --secondary: #6366f1;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-gradient: linear-gradient(-45deg, #e0e7ff, #ede9fe, #c7d2fe, #ddd6fe);
+        }
+        
+        /* พื้นหลังขยับได้ เพิ่มความมีชีวิตชีวา */
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0; 
+            overflow: hidden;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* กล่องการ์ดที่ดูนูนและทันสมัย */
+        .card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(20px); 
+            padding: 40px 30px; 
+            border-radius: 30px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
+            width: 90%; 
+            max-width: 500px; 
+            text-align: center; 
+            border: 2px solid rgba(255,255,255,0.8);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .page { display: none; } 
+        .active { 
+            display: block; 
+            transform: translateY(0);
+            opacity: 1;
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        h1, h2 { color: #1e293b; margin-bottom: 20px; font-weight: 800; }
+        
+        /* ปุ่มสไตล์เกมมิ่ง */
+        button { 
+            font-family: 'Kanit', sans-serif;
+            font-size: 18px; 
+            padding: 16px; 
+            width: 100%; 
+            cursor: pointer; 
+            border-radius: 16px; 
+            border: none; 
+            background: linear-gradient(135deg, var(--secondary), var(--primary)); 
+            color: white; 
+            transition: all 0.2s; 
+            margin-top: 15px; 
+            font-weight: 600; 
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        button:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5); }
+        button:active { transform: translateY(2px) scale(0.98); }
+        
+        button.ready-btn { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        
+        .content-box { 
+            min-height: 150px; 
+            text-align: left; 
+            padding: 25px; 
+            background: #f8fafc; 
+            border-radius: 20px; 
+            margin: 20px 0; 
+            border-left: 8px solid var(--primary); 
+            font-size: 18px;
+            color: #334155;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 18px; 
+            border-radius: 16px; 
+            border: 2px solid #e2e8f0; 
+            font-size: 18px; 
+            margin-bottom: 10px; 
+            box-sizing: border-box; 
+            text-align: center;
+            font-family: 'Kanit', sans-serif;
+            background: #f8fafc;
+            transition: all 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+        
+        /* แถบเวลาแบบเนียนๆ */
+        .progress-container { width: 100%; height: 16px; background: #e2e8f0; border-radius: 8px; margin: 25px 0; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        #progress-bar { width: 100%; height: 100%; background: var(--success); border-radius: 8px; transition: width 1s linear, background-color 0.5s; }
+        
+        /* Grid สำหรับปุ่มคำตอบ */
+        #btns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        #btns button { margin: 0; padding: 20px 10px; font-size: 16px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        
+        /* สีของปุ่มช้อยส์ (เหมือน Kahoot) */
+        #btns button:nth-child(1) { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        #btns button:nth-child(2) { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        #btns button:nth-child(3) { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+        #btns button:nth-child(4) { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+
+        .slide-counter { color: var(--primary); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        
+        .teacher-profile { margin-top: 30px; padding-top: 25px; border-top: 2px dashed #e2e8f0; }
+        .teacher-profile img { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; padding: 3px; background: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: float 3s ease-in-out infinite; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* ตกแต่งหน้าสรุปผล */
+        .wrong-item { background: #fee2e2; border-left: 5px solid var(--danger); padding: 15px; margin-bottom: 15px; border-radius: 12px; text-align: left; }
+        .btn-view-answer { background: var(--warning); padding: 8px 15px; font-size: 14px; margin-top: 10px; width: auto; box-shadow: none; color: #fff; }
     </style>
 </head>
 <body>
     <div id="page-join" class="card page active">
-        <h1 style="color: var(--primary);">เข้าสู่บทเรียน</h1>
-        <input id="name" placeholder="ชื่อ - เลขที่">
-        <button onclick="join()">เข้าสู่บทเรียน</button>
-        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:20px;">
-            <img src="teacher.jpg" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover;">
-            <h3 style="margin: 10px 0 5px 0;">ครูพีระพงษ์ ศรีเที่ยง (ปริ้น)</h3>
-            <p style="color: var(--primary); font-weight: 400;">วิชาเทคโนโลยี 5</p>
+        <h1 style="color: var(--primary); font-size: 32px;">🎮 เตรียมตัวให้พร้อม!</h1>
+        <p style="color: #64748b; margin-bottom: 25px;">พิมพ์ชื่อเพื่อเข้าสู่ห้องเรียน</p>
+        <input id="name" placeholder="ชื่อเล่น - เลขที่ (เช่น ปริ้น-01)">
+        <button onclick="join()">🚀 เข้าสู่บทเรียน</button>
+        
+        <div class="teacher-profile">
+            <img src="teacher.jpg" alt="Teacher">
+            <h3 style="margin: 15px 0 5px 0; color: #1e293b;">ครูพีระพงษ์ ศรีเที่ยง</h3>
+            <p style="color: var(--primary); font-weight: 600; margin: 0;">วิชาเทคโนโลยี 5</p>
         </div>
     </div>
+
     <div id="page-lesson" class="card page">
-        <h2 id="slide-title">บทเรียน</h2>
+        <span class="slide-counter" id="slide-counter">หัวข้อ 1 / 3</span>
+        <h2 id="slide-title" style="color: var(--primary);">บทเรียน</h2>
         <div id="slide-content" class="content-box"></div>
-        <button id="btn-next" onclick="nextSlide()">อ่านหัวข้อถัดไป</button>
-        <button id="btn-ready" onclick="markReady()" style="display:none; background:#10b981;">พร้อมแล้ว!</button>
+        <button id="btn-next" onclick="nextSlide()">อ่านหัวข้อถัดไป ➡️</button>
+        <button id="btn-ready" class="ready-btn" onclick="markReady()" style="display:none;">✨ พร้อมลุยแล้ว!</button>
     </div>
+
     <div id="page-quiz" class="card page">
-        <h2 id="q"></h2>
+        <h2 id="q" style="font-size: 24px; line-height: 1.4;"></h2>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <div id="btns"></div>
     </div>
-    <div id="page-end" class="card page"><h1 id="score-text"></h1><div id="wrong-list" style="text-align:left; margin-top:20px;"></div></div>
+
+    <div id="page-end" class="card page">
+        <h1 style="font-size: 40px;">🏆</h1>
+        <h1 id="score-text" style="color: var(--primary);"></h1>
+        <p style="color: #64748b;">ทบทวนข้อที่ตอบผิดเพื่อความเข้าใจที่มากขึ้นนะ!</p>
+        <div id="wrong-list" style="margin-top:25px; max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
+    </div>
     
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         let currentSlide = 0, currentQs = [], timerInterval;
-       const slides = [ 
-    { 
-    
-    title: "1. การแสดงผล", 
-    content: "printf ใช้แสดงผลออกทางหน้าจอ โครงสร้างคือ printf(\"ข้อความ\"); ตัวอย่าง printf(\"peerapong\");"
-},
-    { 
-        title: "2. การรับค่า", 
-        content: "scanf ใช้รับค่าจากคีย์บอร์ด (ต้องมี & ยกเว้น char) โครงสร้างคือ scanf(\"format code\",&ตัวแปร); ตัวอย่าง scanf(\"%d\",&number);" 
-    }, 
-    { 
-        title: "3. ชนิดตัวแปร", 
-        content: "โครงสร้างคือ ชนิดตัวแปร  ชื่อตัวแปร = ค่า ; ตัวอย่าง int number = 10; int: จำนวนเต็ม ใช้ format code คือ %d, float: ทศนิยม ใช้ format code คือ %f, char: ตัวอักษร ใช้ format code คือ %c(ตัวเดียว),%s" 
-    } 
-];
+        
+        // ข้อมูลคงเดิมเพื่อไม่ให้กระทบระบบ
+        const slides = [ 
+            { title: "1. การแสดงผล", content: "printf ใช้แสดงผลออกทางหน้าจอ\n\nโครงสร้างคือ: printf(\"ข้อความ\");\nตัวอย่าง: printf(\"peerapong\");" },
+            { title: "2. การรับค่า", content: "scanf ใช้รับค่าจากคีย์บอร์ด (ต้องมี & ยกเว้น char)\n\nโครงสร้างคือ: scanf(\"format code\", &ตัวแปร);\nตัวอย่าง: scanf(\"%d\", &number);" }, 
+            { title: "3. ชนิดตัวแปร", content: "โครงสร้างคือ: ชนิดตัวแปร ชื่อตัวแปร = ค่า;\nตัวอย่าง: int number = 10;\n\n• int: จำนวนเต็ม (%d)\n• float: ทศนิยม (%f)\n• char: ตัวอักษร (%c สำหรับตัวเดียว, %s ข้อความ)" } 
+        ];
         const answers = [{a:"printf"}, {a:"จำนวนเต็ม"}, {a:"scanf"}, {a:"บอกที่อยู่"}, {a:"ทศนิยม"}, {a:"ประกาศจำนวนเต็ม"}, {a:"ขึ้นบรรทัดใหม่"}, {a:"ตัวอักษรเดียว"}, {a:"float"}, {a:"โปรแกรมค้าง"}, {a:"stdio.h"}, {a:"my_var"}, {a:"%.2f"}, {a:"1"}, {a:"while"}];
 
-        function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function join() { socket.emit('join', document.getElementById('name').value); showPage('page-lesson'); updateSlide(); }
-        function updateSlide() { document.getElementById('slide-title').innerText = slides[currentSlide].title; document.getElementById('slide-content').innerText = slides[currentSlide].content; if(currentSlide == slides.length-1) { document.getElementById('btn-next').style.display="none"; document.getElementById('btn-ready').style.display="block"; } }
+        function showPage(id) { 
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+                p.style.display = 'none'; // เพื่อรีเซ็ต animation
+            }); 
+            const target = document.getElementById(id);
+            target.style.display = 'block';
+            setTimeout(() => target.classList.add('active'), 10);
+        }
+
+        function join() { 
+            const nameInput = document.getElementById('name').value;
+            if(!nameInput.trim()) { alert("ใส่ชื่อก่อนเข้าเรียนนะครับ!"); return; }
+            socket.emit('join', nameInput); 
+            showPage('page-lesson'); 
+            updateSlide(); 
+        }
+
+        function updateSlide() { 
+            document.getElementById('slide-counter').innerText = `หัวข้อ ${currentSlide + 1} / ${slides.length}`;
+            document.getElementById('slide-title').innerText = slides[currentSlide].title; 
+            // แปลง \n เป็น <br> ให้อ่านง่ายขึ้น
+            document.getElementById('slide-content').innerHTML = slides[currentSlide].content.replace(/\n/g, '<br>'); 
+            
+            if(currentSlide == slides.length-1) { 
+                document.getElementById('btn-next').style.display="none"; 
+                document.getElementById('btn-ready').style.display="block"; 
+            } 
+        }
+
         function nextSlide() { currentSlide++; updateSlide(); }
-        function markReady() { socket.emit('mark_ready'); document.getElementById('btn-ready').disabled = true; document.getElementById('btn-ready').innerText = "รอครูเริ่มเกม..."; }
+
+        function markReady() { 
+            socket.emit('mark_ready'); 
+            const btn = document.getElementById('btn-ready');
+            btn.disabled = true; 
+            btn.innerText = "⏳ รอเพื่อนๆ และครูเริ่มเกม..."; 
+            btn.style.background = "#64748b"; // เปลี่ยนเป็นสีเทา
+            btn.style.boxShadow = "none";
+        }
+
         socket.on('game_start', (qs) => { currentQs = qs; showPage('page-quiz'); renderQuiz(0); });
+
         function renderQuiz(idx) {
             if(idx >= currentQs.length) { showPage('page-end'); return; }
-            clearInterval(timerInterval); let timeLeft = 10; const bar = document.getElementById('progress-bar');
-            document.getElementById('q').innerText = currentQs[idx].q;
-            document.getElementById('btns').innerHTML = currentQs[idx].a.map((opt, i) => `<button onclick="submitAnswer(${idx}, ${i})">${opt}</button>`).join('');
-            timerInterval = setInterval(() => { timeLeft--; bar.style.width = (timeLeft * 10) + "%"; if(timeLeft <= 0) { clearInterval(timerInterval); submitAnswer(idx, -1); } }, 1000);
+            clearInterval(timerInterval); 
+            let timeLeft = 10; 
+            const bar = document.getElementById('progress-bar');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            bar.style.background = 'var(--success)';
+            
+            // รอจังหวะนิดนึงเพื่อให้ transition กลับมาทำงาน
+            setTimeout(() => { bar.style.transition = 'width 1s linear, background-color 0.5s'; }, 50);
+
+            document.getElementById('q').innerText = `ข้อ ${idx + 1}: ${currentQs[idx].q}`;
+            document.getElementById('btns').innerHTML = currentQs[idx].a.map((opt, i) => 
+                `<button onclick="submitAnswer(${idx}, ${i})">${opt}</button>`
+            ).join('');
+            
+            timerInterval = setInterval(() => { 
+                timeLeft--; 
+                bar.style.width = (timeLeft * 10) + "%"; 
+                
+                // เปลี่ยนสีหลอดเวลาให้ตื่นเต้นขึ้น
+                if (timeLeft <= 5 && timeLeft > 2) bar.style.background = 'var(--warning)';
+                if (timeLeft <= 2) bar.style.background = 'var(--danger)';
+
+                if(timeLeft <= 0) { clearInterval(timerInterval); submitAnswer(idx, -1); } 
+            }, 1000);
         }
-        function submitAnswer(idx, ans) { clearInterval(timerInterval); socket.emit('submit', { idx: idx, ans: ans, qObj: currentQs[idx] }); if(idx + 1 < currentQs.length) renderQuiz(idx + 1); else showPage('page-end'); }
+
+        function submitAnswer(idx, ans) { 
+            clearInterval(timerInterval); 
+            socket.emit('submit', { idx: idx, ans: ans, qObj: currentQs[idx] }); 
+            if(idx + 1 < currentQs.length) renderQuiz(idx + 1); 
+            else showPage('page-end'); 
+        }
+
         socket.on('game_over', (p) => { 
             showPage('page-end'); 
-            document.getElementById('score-text').innerText = "คะแนนรวม: " + p.score; 
-            document.getElementById('wrong-list').innerHTML = p.wrongQ.map(q => `
-                <div style="margin-bottom:10px; border-bottom:1px solid #ddd; padding:5px;">❌ ${q.q} 
-                    <button onclick="alert('คำตอบที่ถูกต้องคือ: ${answers[q.originalIdx].a}')" style="font-size:12px; padding:5px; background:#e67e22;">ดูเฉลย</button>
-                </div>`).join(''); 
+            document.getElementById('score-text').innerText = "คะแนนของคุณ: " + p.score; 
+            
+            if(p.wrongQ.length === 0) {
+                document.getElementById('wrong-list').innerHTML = `<h3 style="color:var(--success);">🎉 ยอดเยี่ยมมาก! ตอบถูกทุกข้อเลย!</h3>`;
+            } else {
+                document.getElementById('wrong-list').innerHTML = p.wrongQ.map(q => `
+                    <div class="wrong-item">
+                        <b style="color: var(--danger);">❌ ${q.q}</b> 
+                        <br>
+                        <button class="btn-view-answer" onclick="alert('💡 เฉลยที่ถูกต้องคือ: ${answers[q.originalIdx].a}')">ดูเฉลยข้อนี้</button>
+                    </div>`).join(''); 
+            }
         });
     </script>
 </body>
