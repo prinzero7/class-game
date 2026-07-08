@@ -160,7 +160,7 @@
     </div>
 
     <div id="page-lesson" class="card page">
-        <span class="slide-counter" id="slide-counter">หัวข้อ 1 / 3</span>
+        <span class="slide-counter" id="slide-counter">หัวข้อ 1 / X</span>
         <h2 id="slide-title" style="color: var(--primary);">บทเรียน</h2>
         <div id="slide-content" class="content-box"></div>
         <button id="btn-next" onclick="nextSlide()">อ่านหัวข้อถัดไป ➡️</button>
@@ -185,12 +185,17 @@
         const socket = io();
         let currentSlide = 0, currentQs = [], timerInterval;
         
-        // ข้อมูลคงเดิมเพื่อไม่ให้กระทบระบบ
+        // --- เพิ่มเนื้อหาบทเรียนใหม่ตรงนี้ครับ ---
         const slides = [ 
             { title: "1. การแสดงผล", content: "printf ใช้แสดงผลออกทางหน้าจอ\n\nโครงสร้างคือ: printf(\"ข้อความ\");\nตัวอย่าง: printf(\"peerapong\");" },
             { title: "2. การรับค่า", content: "scanf ใช้รับค่าจากคีย์บอร์ด (ต้องมี & ยกเว้น char)\n\nโครงสร้างคือ: scanf(\"format code\", &ตัวแปร);\nตัวอย่าง: scanf(\"%d\", &number);" }, 
-            { title: "3. ชนิดตัวแปร", content: "โครงสร้างคือ: ชนิดตัวแปร ชื่อตัวแปร = ค่า;\nตัวอย่าง: int number = 10;\n\n• int: จำนวนเต็ม (%d)\n• float: ทศนิยม (%f)\n• char: ตัวอักษร (%c สำหรับตัวเดียว, %s ข้อความ)" } 
+            { title: "3. ชนิดตัวแปร", content: "โครงสร้างคือ: ชนิดตัวแปร ชื่อตัวแปร = ค่า;\nตัวอย่าง: int number = 10;\n\n• int: จำนวนเต็ม (%d)\n• float: ทศนิยม (%f)\n• char: ตัวอักษร (%c สำหรับตัวเดียว, %s ข้อความ)" },
+            { title: "4. กฎการตั้งชื่อตัวแปร", content: "จำไว้ให้แม่น!\n1. ห้ามขึ้นต้นด้วยตัวเลข (เช่น 1stNum ❌)\n2. ห้ามเว้นวรรค (ใช้ _ แทนได้)\n3. ห้ามใช้สัญลักษณ์พิเศษ (ยกเว้น _)\n4. ห้ามใช้คำสงวน (เช่น int, float, while)" },
+            { title: "5. ขนาดของตัวแปร", content: "• char : ขนาด 1 byte (เก็บอักษรได้ 1 ตัว)\n• int : ขนาด 4 byte (เก็บจำนวนเต็ม)\n• float : ขนาด 4 byte (เก็บทศนิยม)\n• double : ขนาด 8 byte (ทศนิยมละเอียดมาก)" },
+            { title: "6. การใช้งาน Loop", content: "ใช้เมื่อต้องการให้โปรแกรมทำงานซ้ำๆ\n\n• while loop: ทำซ้ำเมื่อเงื่อนไขเป็นจริง\nตัวอย่าง:\nwhile (x < 5) {\n   printf(\"Hello\\n\");\n   x++;\n}" }
         ];
+        // ------------------------------------
+        
         const answers = [{a:"printf"}, {a:"จำนวนเต็ม"}, {a:"scanf"}, {a:"บอกที่อยู่"}, {a:"ทศนิยม"}, {a:"ประกาศจำนวนเต็ม"}, {a:"ขึ้นบรรทัดใหม่"}, {a:"ตัวอักษรเดียว"}, {a:"float"}, {a:"โปรแกรมค้าง"}, {a:"stdio.h"}, {a:"my_var"}, {a:"%.2f"}, {a:"1"}, {a:"while"}];
 
         function showPage(id) { 
