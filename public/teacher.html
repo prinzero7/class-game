@@ -3,75 +3,208 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
-    <title>Dashboard วิเคราะห์</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-color: #0f172a; --card-bg: #1e293b; --text-color: #f8fafc; --accent: #38bdf8; }
-        body { font-family: 'Kanit', sans-serif; background: var(--bg-color); color: var(--text-color); padding: 30px; }
-        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #334155; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        :root { 
+            --bg-color: #0b0f19; 
+            --card-bg: rgba(30, 41, 59, 0.7); 
+            --text-color: #f8fafc; 
+            --accent: #0ea5e9; 
+            --accent-glow: rgba(14, 165, 233, 0.5);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
         
-        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        th { color: var(--accent); text-transform: uppercase; letter-spacing: 1px; padding: 15px; text-align: left; }
-        td { padding: 15px; background: #334155; border-top: 1px solid #475569; border-bottom: 1px solid #475569; }
-        tr td:first-child { border-radius: 10px 0 0 10px; }
-        tr td:last-child { border-radius: 0 10px 10px 0; }
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at top right, #1e293b 0%, transparent 40%), radial-gradient(circle at bottom left, #0f172a 0%, transparent 40%);
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* 1. ส่วนหัวของ Dashboard */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 15px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
         
-        button { padding: 12px 24px; background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; font-weight: bold; margin: 5px; }
-        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+        h1 { margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px var(--accent-glow); color: var(--accent); }
+
+        .controls { display: flex; gap: 15px; }
+
+        /* ปุ่มต่างๆ สไตล์โฮโลแกรม */
+        button { 
+            padding: 12px 25px; 
+            background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2)); 
+            color: white; 
+            border: 1px solid var(--accent); 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            font-weight: bold; 
+            font-family: 'Kanit', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+        }
+        button:hover { 
+            background: linear-gradient(135deg, #0ea5e9, #6366f1); 
+            transform: translateY(-2px); 
+            box-shadow: 0 0 20px var(--accent-glow); 
+        }
+        button.btn-start { background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        button.btn-start:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+
+        /* 2. จัด Layout แบบ Grid สไตล์ Command Center */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* แบ่งครึ่งซ้าย-ขวา */
+            gap: 25px;
+        }
+
+        /* กล่อง Glassmorphism */
+        .card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(16px);
+            padding: 25px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card h3 { 
+            margin-top: 0; 
+            color: var(--accent); 
+            border-bottom: 2px solid rgba(14, 165, 233, 0.2); 
+            padding-bottom: 10px; 
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        /* ส่วนบอสและ HP */
+        .boss-container { text-align: center; position: relative; }
+        #boss-gif { 
+            width: 100%; 
+            max-width: 350px; 
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
+        }
+        #boss-status { font-size: 1.5rem; font-weight: 700; margin: 15px 0; color: #f1f5f9; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
-        .advice-item { background: #0f172a; border-left: 5px solid var(--accent); padding: 15px; margin: 8px 0; border-radius: 4px; }
-        .btn-view { background: #3498db; margin-left: 10px; padding: 6px 12px; border-radius: 4px; font-size: 13px; color: white; border: none; cursor: pointer; }
+        .hp-wrapper { width: 100%; background: rgba(0,0,0,0.5); height: 35px; border-radius: 20px; overflow: hidden; border: 2px solid #334155; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.8); }
+        #boss-hp { height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.5s ease-out, background 0.5s; }
+        #hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; font-weight: bold; font-size: 16px; color: white; text-shadow: 1px 1px 2px black; }
+
+        /* ตารางคะแนนล้ำๆ */
+        .table-container { flex-grow: 1; overflow-y: auto; max-height: 400px; padding-right: 10px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { color: #94a3b8; text-transform: uppercase; font-size: 0.9rem; padding: 10px 15px; text-align: left; position: sticky; top: 0; background: var(--card-bg); backdrop-filter: blur(5px); z-index: 10; }
+        td { padding: 15px; background: rgba(255, 255, 255, 0.03); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        tr td:first-child { border-radius: 12px 0 0 12px; border-left: 1px solid rgba(255,255,255,0.05); }
+        tr td:last-child { border-radius: 0 12px 12px 0; border-right: 1px solid rgba(255,255,255,0.05); text-align: right; font-weight: bold; }
+        tr:hover td { background: rgba(255, 255, 255, 0.1); }
+
+        /* แถบวิเคราะห์ Top 3 */
+        .advice-item { 
+            background: rgba(0,0,0,0.3); 
+            border-left: 4px solid var(--accent); 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 0 10px 10px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .btn-view { background: rgba(56, 189, 248, 0.2); margin-left: 10px; padding: 6px 12px; font-size: 12px; border: 1px solid var(--accent); box-shadow: none; }
+        .btn-view:hover { background: var(--accent); color: #000; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Responsive สำหรับจอเล็ก */
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <h1>Dashboard วิเคราะห์</h1>
-    <div class="card" style="text-align: center;">
-        <img id="boss-gif" src="/1.gif" alt="Boss" style="width: 400px; transition: 0.5s;">
-        <h3 id="boss-status">บอสกำลังท้าทายพวกเรา!</h3>
-    </div>
-    
-    <div class="card" style="text-align:center;">
-        <h3>พลังชีวิตของบอส (Boss HP):</h3>
-        <div style="width: 100%; background: #334155; height: 30px; border-radius: 15px; overflow: hidden;">
-            <div id="boss-hp" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.5s ease;"></div>
+
+    <div class="header-container">
+        <h1>🚀 Teacher Command Center</h1>
+        <div class="controls">
+            <button onclick="document.getElementById('bgMusic').play()">🎵 BGM ON</button>
+            <button onclick="document.getElementById('bgMusic').pause()">⏸️ BGM OFF</button>
+            <button class="btn-start" onclick="socket.emit('admin_start')">🔥 เริ่มเกม!</button>
         </div>
-        <p id="hp-text">100 / 100</p>
     </div>
     
-    <button onclick="socket.emit('admin_start')">เริ่มเกม!</button>
-    
-    <audio id="bgMusic" loop>
-        <source src="/b.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bgMusic" loop><source src="/b.mp3" type="audio/mpeg"></audio>
 
-    <div class="card">
-        <button onclick="document.getElementById('bgMusic').play()">เปิดเพลง 🎵</button>
-        <button onclick="document.getElementById('bgMusic').pause()">หยุดเพลง ⏸️</button>
-    </div>
+    <div class="dashboard-grid">
+        
+        <div class="left-panel">
+            <div class="card boss-container">
+                <h3>👾 ภารกิจปราบมอนสเตอร์</h3>
+                <img id="boss-gif" src="/1.gif" alt="Boss">
+                <h2 id="boss-status">บอสกำลังท้าทายพวกเรา!</h2>
+                <div class="hp-wrapper">
+                    <div id="boss-hp"></div>
+                    <p id="hp-text">100 / 100</p>
+                </div>
+            </div>
 
-    <div class="card">
-        <h3>รายชื่อนักเรียน:</h3>
-        <h4 id="student-count" style="color: var(--accent);">กำลังโหลดจำนวนนักเรียน...</h4>
-        <ul id="student-list" style="list-style:none; padding:0;"></ul>
-    </div>
+            <div class="card" style="margin-top: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>📊 Live Heatmap Analysis</h3>
+                    <span style="font-size: 12px; color: #94a3b8; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">*คลิกที่กราฟเพื่อดูโจทย์</span>
+                </div>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+        </div>
 
-    <div class="card">
-        <h3>วิเคราะห์การตอบรายข้อ (Live Heatmap)</h3>
-        <p style="color: #94a3b8; font-size: 0.9em; margin-top: -10px;">*สามารถคลิกที่แท่งกราฟเพื่อดูโจทย์และตัวเลือกได้</p>
-        <canvas id="scoreChart" style="max-height: 250px;"></canvas>
-    </div>
+        <div class="right-panel">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between;">
+                    <h3>🏆 Live Leaderboard</h3>
+                    <span id="student-count" style="color: var(--accent); font-weight: bold;">รอเชื่อมต่อ...</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Rank</th><th>Player Name</th><th style="text-align: right;">Score</th></tr></thead>
+                        <tbody id="leaderboard-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <div class="card">
-        <h3>ตารางคะแนน</h3>
-        <table>
-            <thead><tr><th>อันดับ</th><th>ชื่อ</th><th>คะแนน</th></tr></thead>
-            <tbody id="leaderboard-body"></tbody>
-        </table>
-    </div>
+            <div class="card" style="margin-top: 25px;">
+                <h3>⚠️ จุดที่นักเรียนพลาดบ่อย (Top 3)</h3>
+                <div id="adv" style="min-height: 150px; display: flex; flex-direction: column; justify-content: center; color: #64748b; text-align: center;">
+                    รอข้อมูลจากนักเรียน...
+                </div>
+            </div>
+        </div>
 
-    <div class="card">
-        <h3>วิเคราะห์จุดที่ต้องสอนซ้ำ (Top 3):</h3>
-        <div id="adv">รอข้อมูลจากนักเรียน...</div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -81,38 +214,42 @@
         const questionList = ["คำสั่งแสดงผลภาษา C คือ?", "ตัวแปร int ใช้เก็บอะไร?", "คำสั่งรับค่าคือ?", "สัญลักษณ์ & ใน scanf ใช้ทำไม?", "%f แสดงผลอะไร?", "การประกาศ int a = 10; คือ?", "\\n คืออะไร?", "%c ใช้กับอะไร?", "ตัวแปรแบบไหนเก็บทศนิยม?", "scanf(\"%d\", &x); ถ้าลืม & จะเกิด?", "printf อยู่ใน library ใด?", "ชื่อตัวแปรข้อใดถูกต้อง?", "การแสดงผลทศนิยม 2 ตำแหน่ง?", "ตัวแปร char ขนาดกี่ byte?", "คำสั่งใดใช้ทำซ้ำ?"];
         const optionsList = [["printf", "scanf", "input", "echo"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["output", "scanf", "read", "scan"], ["เว้นวรรค", "บอกที่อยู่", "ขึ้นบรรทัดใหม่", "เชื่อมข้อความ"], ["ทศนิยม", "จำนวนเต็ม", "ตัวอักษร", "ข้อความ"], ["ประกาศทศนิยม", "ประกาศจำนวนเต็ม", "ประกาศตัวอักษร", "ประกาศข้อความ"], ["เว้นวรรค", "จบโปรแกรม", "ขึ้นบรรทัดใหม่", "แสดงผล"], ["ข้อความ", "เลขจำนวนเต็ม", "ตัวอักษรเดียว", "ทศนิยม"], ["int", "char", "float", "short"], ["โปรแกรมค้าง", "ไม่เกิดอะไรขึ้น", "แสดงผลผิด", "คอมไพล์ไม่ผ่าน"], ["math.h", "stdio.h", "conio.h", "string.h"], ["1stNum", "my_var", "int", "break"], ["%.2f", "%2f", "%f2", "%2.f"], ["1", "2", "4", "8"], ["if", "while", "printf", "scanf"]];
 
-        // --- 1. เตรียมระบบกราฟ ---
+        // --- 1. ระบบกราฟ ---
         let scoreChart;
 
         function initChart() {
             const canvas = document.getElementById('scoreChart');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
+            
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Kanit', sans-serif";
+
             scoreChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: questionList.map((_, i) => 'ข้อ ' + (i+1)),
+                    labels: questionList.map((_, i) => 'Q' + (i+1)),
                     datasets: [{
-                        label: '% นักเรียนที่ตอบถูก',
-                        data: Array(questionList.length).fill(0), // เริ่มต้นที่ 0%
-                        backgroundColor: '#38bdf8',
-                        borderRadius: 5,
-                        hoverBackgroundColor: '#0ea5e9' // สีตอนเอาเมาส์ชี้
+                        label: ' ความถูกต้อง (%)',
+                        data: Array(questionList.length).fill(0), 
+                        backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                        borderColor: '#38bdf8',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        hoverBackgroundColor: '#38bdf8' 
                     }]
                 },
                 options: { 
                     responsive: true,
                     maintainAspectRatio: false,
-                    // *** ส่วนที่เพิ่มใหม่: ทำให้กราฟคลิกได้ ***
                     onClick: (event, elements) => {
                         if (elements.length > 0) {
                             const dataIndex = elements[0].index;
                             const qText = questionList[dataIndex];
                             const optText = optionsList[dataIndex].map((opt, idx) => `${idx + 1}. ${opt}`).join('\n');
-                            alert(`📌 โจทย์ข้อที่ ${dataIndex + 1}:\n${qText}\n\n📝 ตัวเลือก:\n${optText}`);
+                            alert(`📌 ข้อที่ ${dataIndex + 1}:\n${qText}\n\n📝 ตัวเลือก:\n${optText}`);
                         }
                     },
-                    // *** ส่วนที่เพิ่มใหม่: เปลี่ยนรูปเมาส์เวลาชี้กราฟ ***
                     onHover: (event, chartElement) => {
                         event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                     },
@@ -120,99 +257,120 @@
                         y: { 
                             beginAtZero: true, 
                             max: 100,
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: 'rgba(255,255,255,0.05)' }
                         },
                         x: {
-                            grid: { display: false },
-                            ticks: { color: '#94a3b8' }
+                            grid: { display: false }
                         }
                     },
                     plugins: {
-                        legend: { labels: { color: '#f8fafc' } }
+                        legend: { display: false } // ปิด Legend เพื่อเพิ่มพื้นที่กราฟ
                     }
                 }
             });
         }
 
-        // สั่งสร้างกราฟทันทีเมื่อหน้าเว็บโหลดเสร็จสมบูรณ์
         window.onload = initChart;
 
         // --- 2. ระบบ Socket ---
         socket.on('update_players', (ps) => {
-            document.getElementById('student-count').innerText = "จำนวนนักเรียนที่เข้าร่วม: " + ps.length + " คน";
-            document.getElementById('student-list').innerHTML = ps.map(p => 
-                `<li>${p.name} <span style="float:right; color:${p.ready?'#2ecc71':'#e74c3c'}">${p.ready?'✅พร้อม':'⏳กำลังอ่าน'}</span></li>`
-            ).join('');
+            const readyCount = ps.filter(p => p.ready).length;
+            document.getElementById('student-count').innerText = `Online: ${ps.length} | Ready: ${readyCount}`;
         });
 
         socket.on('score_update', (d) => {
-            // คำนวณตารางคะแนน
+            // อัปเดตตารางคะแนน
             let sorted = [...d.players].sort((a,b) => b.score - a.score);
             let totalScore = d.players.reduce((sum, p) => sum + p.score, 0);
 
             document.getElementById('leaderboard-body').innerHTML = sorted.map((p, i) => {
-                let glow = i < 3 ? `box-shadow: 0 0 15px ${i==0?'#d4af37':(i==1?'#a8a8a8':'#b87333')}; border: 1px solid ${i==0?'#d4af37':(i==1?'#a8a8a8':'#b87333')};` : "";
-                let style = i < 3 ? `style="background:#1e293b; ${glow} font-weight:bold; transform: scale(1.02);"` : "";
+                // เอฟเฟกต์แชมป์ (Top 3)
+                let glow = ""; let color = "#f8fafc"; let rankIcon = i+1;
+                if(i === 0) { glow = "box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); border-left: 3px solid #facc15;"; color = "#facc15"; rankIcon = "👑 1"; }
+                else if(i === 1) { glow = "border-left: 3px solid #94a3b8;"; color = "#cbd5e1"; }
+                else if(i === 2) { glow = "border-left: 3px solid #b45309;"; color = "#d97706"; }
+
+                let style = i < 3 ? `style="background: rgba(255,255,255,0.08); transform: scale(1.02); z-index: 1; ${glow}"` : "";
+                
                 return `<tr ${style}>
-                    <td style="color:${i<3?'var(--accent)':''}">${i+1}</td>
-                    <td>${p.name || "ไม่ระบุชื่อ"}</td>
-                    <td style="font-size:1.2em; color:#38bdf8;">${p.score}</td>
+                    <td style="color:${color}; font-weight:bold; width: 60px;">${rankIcon}</td>
+                    <td>${p.name || "Unknown"}</td>
+                    <td style="font-size:1.2em; color:var(--accent); text-align:right;">${p.score}</td>
                 </tr>`;
             }).join('') + 
-            `<tr style="background:rgba(56, 189, 248, 0.1); color:var(--accent); font-weight:bold;">
-                <td colspan="2" style="text-align:right;">รวมคะแนนทั้งห้อง:</td>
-                <td style="font-size:1.2em;">${totalScore}</td>
+            `<tr style="background: rgba(14, 165, 233, 0.15); font-weight:bold; border-top: 2px solid var(--accent);">
+                <td colspan="2" style="text-align:right; color: #94a3b8;">TOTAL ROOM SCORE:</td>
+                <td style="font-size:1.4em; color: #f8fafc; text-align:right;">${totalScore}</td>
             </tr>`;
 
-            // ระบบ Boss HP
+            // ระบบเลือดบอส (HP)
             let totalWrong = d.wrongCounts.reduce((sum, val) => sum + val, 0);
             let hp = Math.max(0, Math.min(100, 100 - (totalScore * 0.5) + (totalWrong * 2))); 
 
             const hpBar = document.getElementById('boss-hp');
             const hpText = document.getElementById('hp-text');
+            const bossGif = document.getElementById('boss-gif');
+            const bossStatus = document.getElementById('boss-status');
+
             if (hpBar && hpText) {
                 hpBar.style.width = hp + "%";
                 hpText.innerText = Math.round(hp) + " / 100";
                 
-                if (hp > 70) hpBar.style.background = "linear-gradient(90deg, #22c55e, #10b981)";
-                else if (hp > 30) hpBar.style.background = "linear-gradient(90deg, #eab308, #ca8a04)";
-                else hpBar.style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
+                if (hp > 70) {
+                    hpBar.style.background = "linear-gradient(90deg, #10b981, #34d399)";
+                    bossGif.style.filter = "drop-shadow(0 0 20px rgba(16, 185, 129, 0.4))";
+                }
+                else if (hp > 30) {
+                    hpBar.style.background = "linear-gradient(90deg, #f59e0b, #fbbf24)";
+                    bossGif.style.filter = "drop-shadow(0 0 20px rgba(245, 158, 11, 0.4))";
+                }
+                else {
+                    hpBar.style.background = "linear-gradient(90deg, #ef4444, #f87171)";
+                    bossGif.style.filter = "drop-shadow(0 0 25px rgba(239, 68, 68, 0.8))";
+                }
             }
             
-            // เปลี่ยนรูป GIF บอส
-            const bossGif = document.getElementById('boss-gif');
-            const bossStatus = document.getElementById('boss-status');
-
+            // เปลี่ยนรูปบอส
             if (bossGif && bossStatus) {
-                bossGif.style.width = "400px";
                 if (hp >= 70) {
                     if (bossGif.src.indexOf("1.gif") === -1) bossGif.src = "/1.gif";
                     bossStatus.innerText = "บอสกำลังท้าทายพวกเรา!";
+                    bossStatus.style.color = "#f8fafc";
                 } else if (hp >= 30) {
                     if (bossGif.src.indexOf("2.gif") === -1) bossGif.src = "/2.gif";
                     bossStatus.innerText = "บอสเริ่มเหนื่อยแล้ว! จัดการเลย!";
+                    bossStatus.style.color = "#facc15";
                 } else if (hp > 0) {
                     if (bossGif.src.indexOf("3.gif") === -1) bossGif.src = "/3.gif";
                     bossStatus.innerText = "บอสใกล้ตายแล้ว! โจมตีขั้นสุดท้าย!";
+                    bossStatus.style.color = "#ef4444";
                 } else {
                     if (bossGif.src.indexOf("4.gif") === -1) bossGif.src = "/4.gif";
-                    bossStatus.innerText = "GAME WINNER: พวกเราชนะแล้ว!";
-                    bossGif.style.transform = "scale(1.6)";
+                    bossStatus.innerHTML = "✨ GAME CLEAR: ปราบมอนสเตอร์สำเร็จ! ✨";
+                    bossStatus.style.color = "#10b981";
+                    bossStatus.style.textShadow = "0 0 15px rgba(16,185,129,0.5)";
+                    bossGif.style.transform = "scale(1.2)";
+                    bossGif.style.filter = "drop-shadow(0 0 30px rgba(255, 255, 255, 0.5))";
                 }
             }
 
-            // ระบบวิเคราะห์คำแนะนำ (Top 3)
+            // วิเคราะห์จุดอ่อน
             let ranked = d.wrongCounts.map((c,i)=>({c,i})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3);
-            document.getElementById('adv').innerHTML = ranked.map(x => `
-                <div class="advice-item">
-                    <b>ข้อ ${x.i+1} (ผิด ${x.c} คน):</b> ${adviceBank[x.i]} 
-                    <button class="btn-view" onclick="alert('โจทย์: ${questionList[x.i]}\\n\\nตัวเลือก: ${optionsList[x.i].join(', ')}')">ดูโจทย์และตัวเลือก</button>
-                </div>`).join('');
+            if(ranked.length > 0) {
+                document.getElementById('adv').innerHTML = ranked.map((x, index) => `
+                    <div class="advice-item">
+                        <div>
+                            <span style="color:var(--danger); font-weight:bold; margin-right:10px;">#${index+1}</span>
+                            <b style="color:white;">Q${x.i+1} (ผิด ${x.c} คน):</b> <span style="color:#cbd5e1;">${adviceBank[x.i]}</span>
+                        </div>
+                        <button class="btn-view" onclick="alert('โจทย์: ${questionList[x.i]}\\n\\nตัวเลือก: ${optionsList[x.i].join(', ')}')">ดูโจทย์</button>
+                    </div>`).join('');
+                document.getElementById('adv').style.textAlign = 'left';
+            }
 
-            // อัปเดตกราฟ (Live Heatmap)
+            // อัปเดตกราฟ
             if (scoreChart) {
-                let totalStudents = d.players.length || 1; // กันค่าเป็น 0 เพื่อป้องกัน Error หารด้วยศูนย์
+                let totalStudents = d.players.length || 1;
                 let percentCorrect = d.wrongCounts.map(wrong => {
                     let correctCount = Math.max(0, totalStudents - wrong);
                     return (correctCount / totalStudents) * 100;
